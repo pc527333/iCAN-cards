@@ -21,6 +21,7 @@ import zipfile
 import traceback
 import re
 from fuzzywuzzy import fuzz
+import math
 
 import base64
 import streamlit.components.v1 as components
@@ -646,6 +647,7 @@ def create_pdfs(file_dict, text_size, section_text_size, header_fontsize):
             previous_person_position = -1000
 
             page_number = 0
+            duplicate_count = 1
 
             progress_text = "Creating PDFs. Please wait..."
             my_bar = st.progress(0, text=progress_text)
@@ -681,14 +683,60 @@ def create_pdfs(file_dict, text_size, section_text_size, header_fontsize):
                     color = (1, 1, 1) # (0.0627451, 0.18039216, 0.2627451) #
                     # color = (0, 0, 0)
 
-                    insert_text_(name, x, 23, font_path_1, 'font3', font_size_1, color = color, ) #  (0.0627451, 0.18039216, 0.2627451)
-                    insert_text_(r["Credentials"], x+1, 30.5, font_path_2, 'font2', font_size_2, color = color, )
-                    insert_text_(r["Title"], x, 44, font_path_3, 'font1', font_size_4, color = color, )
+                    try:
+                        insert_text_(name, x, 23, font_path_1, 'font3', font_size_1, color = color, ) #  (0.0627451, 0.18039216, 0.2627451)
+                    except:
+                        pass
+                    try:
+                        insert_text_(r["Credentials"], x, 30.5, font_path_2, 'font2', font_size_2, color = color, )
+                    except:
+                        pass
 
+
+                    try:
+                        title_1 = r["Title field 1"]
+                        title_2 = r["Title field 2"]                        
+                        if pd.isna(title_2):
+                            title_2 = ''
+                    except:
+                        try:
+                            title_1 = r["Title"]
+                            title_2 = r['Title field 2']
+                        except:
+                            try:
+                                title_1 = r["Title"]
+                                title_2 = ''
+                            except:
+                                title_1 = ''
+                                title_2 = ''                            
+
+
+                    # insert_text_(title_1, 93.5, 123, font_path_2, 'font2', font_size_3, color = (1.0, 1.0, 1.0), )
+                    # insert_text_(title_2, 93.5, 131, font_path_2, 'font2', font_size_3, color = (1.0, 1.0, 1.0), ) 
+
+                    try:
+                        insert_text_(title_1, x, 44, font_path_3, 'font1', font_size_4, color = color, )
+                    except:
+                        pass
+                    try:
+                        insert_text_(title_2, x, 52, font_path_3, 'font1', font_size_4, color = color, )
+                    except:
+                        pass
+                
                     x = 119
-                    insert_text_(r["Info field 1 (phone)"], x, 84.5, font_path_2, 'font2', font_size_3, color = color, )
-                    insert_text_(r["Info field 2 (email)"], x, 100.5, font_path_2, 'font2', font_size_3, color = color, )
-                    insert_text_(r["Info field 3 (url)"], x, 116.5, font_path_2, 'font2', font_size_3, color = color, )
+                    try:
+                        insert_text_(r["Info field 1 (phone)"], x, 84.5, font_path_2, 'font2', font_size_3, color = color, )
+                    except:
+                        pass
+
+                    try:
+                        insert_text_(r["Info field 2 (email)"], x, 100.5, font_path_2, 'font2', font_size_3, color = color, )
+                    except:
+                        pass
+                    try:
+                        insert_text_(r["Info field 3 (url)"], x, 116.5, font_path_2, 'font2', font_size_3, color = color, )
+                    except:
+                        pass
 
                     # for i, info in enumerate(get_split_string_or_empty_list(r["Title"], my_font = font_3, my_font_size = font_size_2, input_x = 82, )):
                     #     y = 61
@@ -828,6 +876,10 @@ def create_pdfs(file_dict, text_size, section_text_size, header_fontsize):
                         ";", ""
                     )  #'New Specialists Joining'
                     doc.set_metadata(metadata_dict)
+
+                    if name in pdf_dict:
+                        duplicate_count += 1
+                        name = "{} {} {} {}".format(name, r['Credentials'], title_1, duplicate_count)
 
                     pdf_dict[name] = doc.tobytes(
                         garbage=4,
